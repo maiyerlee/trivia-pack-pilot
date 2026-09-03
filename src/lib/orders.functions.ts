@@ -16,7 +16,7 @@ export type OrderSummary = {
  * fields the results page needs.
  */
 export const getOrder = createServerFn({ method: "GET" })
-  .validator((data: { orderId: string }) => {
+  .inputValidator((data: { orderId: string }) => {
     if (!data?.orderId || typeof data.orderId !== "string") throw new Error("orderId is required");
     return data;
   })
