@@ -1,0 +1,82 @@
+# Reverse sync: dev repo `main`  -->  production repo `dev` branch.
+#
+# Edits made in the dev Lovable editor land on the dev repo's main branch.
+# This carries them back to the production repo's dev branch so the production
+# repo stays the single place developers work from.
+#
+# Runs only in the dev repo (see the `if:` on the job). Skips commits that the
+# forward mirror produced ("[mirror]" marker) so the two workflows never chain.
+# The production repo's own .env and supabase/config.toml are never overwritten.
+
+name: Sync Lovable edits back to main repo
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: mirror-dev
+  cancel-in-progress: false
+
+env:
+  SOURCE_REPO: maiyerlee/trivia-launchpad-dev
+  SOURCE_BRANCH: main
+  DEST_REPO: maiyerlee/trivia-pack-pilot
+  DEST_BRANCH: dev
+
+jobs:
+  sync-back:
+    if: >-
+      github.repository == 'maiyerlee/trivia-launchpad-dev' &&
+      !contains(github.event.head_commit.message, '[mirror]')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source (this repo, main branch)
+        uses: actions/checkout@v4
+        with:
+          path: src
+
+      - name: Check out destination (production repo, dev branch)
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.DEST_REPO }}
+          ref: ${{ env.DEST_BRANCH }}
+          token: ${{ secrets.MIRROR_TOKEN }}
+          path: dest
+
+      - name: Copy everything except environment-specific files
+        run: |
+          set -euo pipefail
+          rsync -a --delete \
+            --exclude='.git/' \
+            --exclude='.env' \
+            --exclude='supabase/config.toml' \
+            src/ dest/
+
+      - name: Safety check - protected files untouched
+        working-directory: dest
+        run: |
+          set -euo pipefail
+          if ! git diff --quiet -- .env supabase/config.toml; then
+            echo "::error::Protected environment files would change. Refusing to push."
+            git diff -- .env supabase/config.toml
+            exit 1
+          fi
+
+      - name: Commit and push if anything changed
+        working-directory: dest
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes to sync back."
+            exit 0
+          fi
+          SHORT="${GITHUB_SHA::7}"
+          git commit \
+            -m "Sync Lovable edits from ${SOURCE_REPO} (${SHORT}) [mirror]" \
+            -m "Source: https://github.com/${SOURCE_REPO}/commit/${GITHUB_SHA}"
+          git push origin "HEAD:${DEST_BRANCH}"
