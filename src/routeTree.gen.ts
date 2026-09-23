@@ -15,6 +15,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as ResultsRouteImport } from './routes/results'
 import { Route as AuthenticatedMyPacksRouteImport } from './routes/_authenticated/my-packs'
+import { Route as ApiAiHealthRouteImport } from './routes/api/ai-health'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -45,6 +46,11 @@ const AuthenticatedMyPacksRoute = AuthenticatedMyPacksRouteImport.update({
   path: '/my-packs',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ApiAiHealthRoute = ApiAiHealthRouteImport.update({
+  id: '/api/ai-health',
+  path: '/api/ai-health',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -52,6 +58,7 @@ export interface FileRoutesByFullPath {
   '/checkout': typeof CheckoutRoute
   '/results': typeof ResultsRoute
   '/my-packs': typeof AuthenticatedMyPacksRoute
+  '/api/ai-health': typeof ApiAiHealthRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -59,6 +66,7 @@ export interface FileRoutesByTo {
   '/checkout': typeof CheckoutRoute
   '/results': typeof ResultsRoute
   '/my-packs': typeof AuthenticatedMyPacksRoute
+  '/api/ai-health': typeof ApiAiHealthRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -68,12 +76,14 @@ export interface FileRoutesById {
   '/checkout': typeof CheckoutRoute
   '/results': typeof ResultsRoute
   '/_authenticated/my-packs': typeof AuthenticatedMyPacksRoute
+  '/api/ai-health': typeof ApiAiHealthRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/checkout' | '/results' | '/my-packs'
+  fullPaths:
+    '/' | '/auth' | '/checkout' | '/results' | '/my-packs' | '/api/ai-health'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/checkout' | '/results' | '/my-packs'
+  to: '/' | '/auth' | '/checkout' | '/results' | '/my-packs' | '/api/ai-health'
   id:
     | '__root__'
     | '/'
@@ -82,6 +92,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/results'
     | '/_authenticated/my-packs'
+    | '/api/ai-health'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -90,6 +101,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   CheckoutRoute: typeof CheckoutRoute
   ResultsRoute: typeof ResultsRoute
+  ApiAiHealthRoute: typeof ApiAiHealthRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -136,6 +148,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMyPacksRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/ai-health': {
+      id: '/api/ai-health'
+      path: '/api/ai-health'
+      fullPath: '/api/ai-health'
+      preLoaderRoute: typeof ApiAiHealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -156,6 +175,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   CheckoutRoute: CheckoutRoute,
   ResultsRoute: ResultsRoute,
+  ApiAiHealthRoute: ApiAiHealthRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
