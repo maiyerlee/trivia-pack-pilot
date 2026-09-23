@@ -36,7 +36,8 @@ export interface AiConfig {
 
 const DEFAULT_OPENAI_COMPATIBLE_BASE_URL = "https://ai.gateway.lovable.dev/v1";
 const DEFAULT_OPENAI_COMPATIBLE_MODEL = "google/gemini-2.5-flash";
-const DEFAULT_BEDROCK_MODEL = "us.anthropic.claude-haiku-4-5-20251001-v1:0";
+// Open-weight default so a fresh account works without Anthropic's per-account use-case form.
+const DEFAULT_BEDROCK_MODEL = "us.meta.llama3-3-70b-instruct-v1:0";
 const DEFAULT_BEDROCK_REGION = "us-east-1";
 
 function env(name: string): string {
